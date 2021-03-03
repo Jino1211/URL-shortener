@@ -26,7 +26,6 @@ class DataBase {
       })
       .catch((e) => {
         return false;
-        console.log("hello im here" + e);
       });
   }
 
@@ -42,6 +41,26 @@ class DataBase {
       .catch((err) => {
         console.log(err);
         return "Was an error" + err;
+      });
+  }
+
+  findOriginalUrl(short) {
+    return fsPromise
+      .readFile("./database/database.json", "utf8")
+      .then((data) => {
+        const parseData = JSON.parse(data);
+        const findUrl = parseData.find((urlElem) => {
+          if (urlElem.shrinkUrl === short) {
+            return true;
+          }
+        });
+        if (findUrl) {
+          return findUrl;
+        }
+        throw new Error("hye hahah");
+      })
+      .catch((e) => {
+        return false;
       });
   }
 }

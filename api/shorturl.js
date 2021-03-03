@@ -7,13 +7,17 @@ const { URL, DataBase } = require("../managedatabase");
 router.use(express.json());
 router.use(express.urlencoded());
 
-//check if req.url exist
+//middleware check if req.url exist
 function checkExist(req, res, next) {
   const { url } = req.body;
   DB.urlExists(url)
-    .then((excisedUrl) => {
-      if (excisedUrl) {
-        res.send(excisedUrl);
+    .then((urlObject) => {
+      if (urlObject) {
+        res
+          .status(200)
+          .send(
+            `Already exist. Original url: ${urlObject.originUrl} | Short url: ${urlObject.shrinkUrl}`
+          );
         return;
       }
       throw new Error(e);
@@ -32,9 +36,18 @@ router.post("/", checkExist, (req, res) => {
   DB.addURL(url).then((newUrl) => {
     res
       .status(200)
-      .send(`original url: ${newUrl.originUrl} short url: ${newUrl.shrinkUrl}`);
+      .send(
+        `First time you send it. Original url: ${newUrl.originUrl} | Short url: ${newUrl.shrinkUrl}`
+      );
   });
 });
-// res.send("Url excised");
+
+router.get("/:short", (req, res) => {
+  const { short } = req.params;
+  DB.findOriginalUrl(short).then((urlObject) => {
+    console.log(urlObject);
+    res.redirect(`${urlObject.originUrl}`);
+  });
+});
 
 module.exports = router;
