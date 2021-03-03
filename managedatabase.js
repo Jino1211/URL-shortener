@@ -29,6 +29,7 @@ class DataBase {
       });
   }
 
+  //add url
   addURL(url) {
     const newUrl = new URL(url);
     this.dataUrl.push(newUrl);
@@ -44,6 +45,7 @@ class DataBase {
       });
   }
 
+  //
   findOriginalUrl(short) {
     return fsPromise
       .readFile("./database/database.json", "utf8")
@@ -57,7 +59,7 @@ class DataBase {
         if (findUrl) {
           return findUrl;
         }
-        throw new Error("hye hahah");
+        throw new Error("Not found");
       })
       .catch((e) => {
         return false;
@@ -70,7 +72,7 @@ class URL {
     this.originUrl = URL;
     this.shrinkUrl = shortid.generate();
     this.createAt = new Date().toLocaleString();
-    this.redirect = 0;
+    this.redirectCounter = 0;
   }
 }
 
