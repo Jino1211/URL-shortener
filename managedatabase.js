@@ -1,3 +1,4 @@
+const e = require("express");
 const fsPromise = require("fs/promises");
 const { url } = require("inspector");
 const shortid = require("shortid");
@@ -7,32 +8,40 @@ class DataBase {
     this.dataUrl = [];
   }
 
-  //check if the current url is already exist in database, return false if not, and the original+shrink if yes.
-  checkIfUrlExists(url) {
-    // const data = getTheJsonBase();
-    for (let urlObj in data) {
-      if (url === urlObj[originUrl]) {
-        return urlObj;
-      }
-    }
-    return false;
+  //check if the current url is already exist in database, and return the original+shrink if yes.
+  urlExists(url) {
+    return fsPromise
+      .readFile("./database/database.json", "utf8")
+      .then((data) => {
+        const parseData = JSON.parse(data);
+        const findUrl = parseData.find((urlElem) => {
+          if (urlElem.originUrl === url) {
+            return true;
+          }
+        });
+        if (findUrl) {
+          return findUrl;
+        }
+        throw new Error("hye hahah");
+      })
+      .catch((e) => {
+        return false;
+        console.log("hello im here" + e);
+      });
   }
 
   addURL(url) {
-    // if (this.checkIfUrlExists(url)) {
-    // return false;
-    // }
     const newUrl = new URL(url);
     this.dataUrl.push(newUrl);
-    console.log(this.dataUrl);
-    const data = JSON.stringify(this.dataUrl);
-    fsPromise
+    const data = JSON.stringify(this.dataUrl, null, 4);
+    return fsPromise
       .writeFile("./database/database.json", data, "utf-8")
       .then(() => {
-        console.log("Success :" + data);
+        return newUrl;
       })
       .catch((err) => {
         console.log(err);
+        return "Was an error" + err;
       });
   }
 }
@@ -41,22 +50,9 @@ class URL {
   constructor(URL) {
     this.originUrl = URL;
     this.shrinkUrl = shortid.generate();
-    this.createAt = new Date();
+    this.createAt = new Date().toLocaleString();
+    this.redirect = 0;
   }
 }
-
-// function getTheJsonBase() {
-//   fs.readFile("./database/database.json", "utf8").then((data) => {
-//     data = JSON.stringify(data);
-//     console.log(data);
-//   });
-//   if (err) {
-//     console.error("Cannot able to read the database:" + err);
-//   }
-//   try {
-//   } catch {
-//     console.error("Cannot able to parse the data:" + err);
-//   }
-// }
 
 module.exports = { DataBase, URL };
