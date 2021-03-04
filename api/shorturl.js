@@ -31,8 +31,8 @@ function checkExist(req, res, next) {
 //middleware that check short format is valid - 9 characters
 function checkFormat(req, res, next) {
   const { short } = req.params;
-  if (short.length !== 9) {
-    res.status(400).send(`${new Error("Not on format")}`);
+  if (short.length >= 11) {
+    res.status(400).json(`${new Error("Not in format")}`);
     return;
   }
   next();
@@ -43,7 +43,7 @@ const DB = new DataBase();
 router.post("/", checkExist, (req, res) => {
   const { url } = req.body;
   if (!validUrl.isUri(url)) {
-    res.status(400).send(`${new Error("This is invalid URL")}`);
+    res.status(400).json(`${new Error("This is invalid URL")}`);
     return;
   }
   console.log("newUrl");
@@ -66,7 +66,7 @@ router.get("/:short", checkFormat, (req, res) => {
   DB.findOriginalUrl(short)
     .then((urlObject) => {
       if (!urlObject) {
-        res.status(404).send(`${new Error("Short url is not found")}`);
+        res.status(404).json({ msg: `${new Error("Short url is not found")}` });
         return;
       }
       DB.updateRedirectClicks(short);
