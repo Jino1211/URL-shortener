@@ -1,5 +1,5 @@
 const e = require("express");
-const { readFile } = require("fs");
+const { readFile, read, writeFile } = require("fs");
 const fsPromise = require("fs/promises");
 const { url } = require("inspector");
 const shortid = require("shortid");
@@ -8,7 +8,7 @@ class DataBase {
   constructor() {
     this.dataUrl = [];
 
-    //keep the URL array sync with the data base
+    //keep the data URL sync with the data base
     readFromBase().then((data) => {
       if (data) {
         this.dataUrl = data;
@@ -19,23 +19,6 @@ class DataBase {
   //check if the current URL is already exist in database, and return the original+shrink if yes.
   urlExists(url) {
     return compareUrlFromBase(url, "originUrl");
-    //   return fsPromise
-    //     .readFile("./database/database.json", "utf8")
-    //     .then((data) => {
-    //       const parseData = JSON.parse(data);
-    //       const findUrl = parseData.find((urlElem) => {
-    //         if (urlElem.originUrl === url) {
-    //           return true;
-    //         }
-    //       });
-    //       if (findUrl) {
-    //         return findUrl;
-    //       }
-    //       throw new Error("hye hahah");
-    //     })
-    //     .catch((e) => {
-    //       return false;
-    //     });
   }
 
   //add url
@@ -57,24 +40,26 @@ class DataBase {
   // Check the current short URL and send it the source match
   findOriginalUrl(short) {
     return compareUrlFromBase(short, "shrinkUrl");
-    //   return fsPromise
-    //     .readFile("./database/database.json", "utf8")
-    //     .then((data) => {
-    //       const parseData = JSON.parse(data);
-    //       const findUrl = parseData.find((urlElem) => {
-    //         if (urlElem.shrinkUrl === short) {
-    //           return true;
-    //         }
-    //       });
-    //       if (findUrl) {
-    //         return findUrl;
-    //       }
-    //       throw new Error("Not found");
-    //     })
-    //     .catch((e) => {
-    //       return false;
-    //     });
-    // }
+  }
+
+  updateRedirectClicks(short) {
+    compareUrlFromBase(short, "shrinkUrl")
+      .then((findUrl) => {
+        const index = this.dataUrl.findIndex((matchUrlInDB) => {
+          if (matchUrlInDB.shrinkUrl === findUrl.shrinkUrl) {
+            return true;
+          }
+        });
+        this.dataUrl[index].redirectCounter++;
+        return this.dataUrl;
+      })
+      .then((data) => {
+        console.log(`hello its me ${data}`);
+        data = JSON.stringify(data, null, 4);
+        fsPromise.writeFile("./database/database.json", data, (e) => {
+          console.log(e);
+        });
+      });
   }
 }
 

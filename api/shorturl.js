@@ -66,6 +66,7 @@ router.get("/:short", checkFormat, (req, res) => {
       if (!urlObject) {
         throw new Error("Short url is not found");
       }
+      DB.updateRedirectClicks(short);
       res.redirect(`${urlObject.originUrl}`);
     })
     .catch((e) => {
