@@ -1,8 +1,11 @@
 const e = require("express");
-const { readFile, read, writeFile } = require("fs");
 const fsPromise = require("fs/promises");
 const { url } = require("inspector");
 const shortid = require("shortid");
+let testOrNor;
+process.env.NODE_ENV === "test"
+  ? (testOrNor = "testdatabase")
+  : (testOrNor = "database");
 
 class DataBase {
   constructor() {
@@ -27,7 +30,7 @@ class DataBase {
     this.dataUrl.push(newUrl);
     const data = JSON.stringify(this.dataUrl, null, 4);
     return fsPromise
-      .writeFile("./database/database.json", data, "utf-8")
+      .writeFile(`./database/${testOrNor}.json`, data, "utf-8")
       .then(() => {
         return newUrl;
       })
@@ -55,9 +58,8 @@ class DataBase {
         return this.dataUrl;
       })
       .then((data) => {
-        console.log(`hello its me ${data}`);
         data = JSON.stringify(data, null, 4);
-        fsPromise.writeFile("./database/database.json", data, (e) => {
+        fsPromise.writeFile(`./database/${testOrNor}.json`, data, (e) => {
           console.log(e);
         });
       });
@@ -76,7 +78,7 @@ class URL {
 //receive url and type, and find the match url from the data base
 function compareUrlFromBase(url, kind) {
   return fsPromise
-    .readFile("./database/database.json", "utf8")
+    .readFile(`./database/${testOrNor}.json`, "utf8")
     .then((data) => {
       const parseData = JSON.parse(data);
       const findUrl = parseData.find((urlElem) => {
@@ -96,7 +98,7 @@ function compareUrlFromBase(url, kind) {
 
 function readFromBase() {
   return fsPromise
-    .readFile("./database/database.json", "utf8")
+    .readFile(`./database/${testOrNor}.json`, "utf8")
     .then((data) => {
       const parseData = JSON.parse(data);
       return parseData;

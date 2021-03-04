@@ -1,4 +1,4 @@
-const { json } = require("body-parser");
+// const { json } = require("body-parser");
 const e = require("express");
 const express = require("express");
 const router = express.Router();
@@ -43,19 +43,21 @@ const DB = new DataBase();
 router.post("/", checkExist, (req, res) => {
   const { url } = req.body;
   if (!validUrl.isUri(url)) {
-    throw new Error("This is invalid URL");
+    res.status(400).send(`${new Error("This is invalid URL")}`);
+    return;
   }
   console.log("newUrl");
   DB.addURL(url)
     .then((newUrl) => {
       res
-        .status(200)
+        .status(201)
         .send(
           `First time you send it. Original url: ${newUrl.originUrl} | Short url: ${newUrl.shrinkUrl}`
         );
     })
     .catch((e) => {
-      res.status(400).send(`${e}`);
+      console.log(e);
+      res.status(500).send(`${e}`);
     });
 });
 
@@ -64,13 +66,14 @@ router.get("/:short", checkFormat, (req, res) => {
   DB.findOriginalUrl(short)
     .then((urlObject) => {
       if (!urlObject) {
-        throw new Error("Short url is not found");
+        res.status(404).send(`${new Error("Short url is not found")}`);
+        return;
       }
       DB.updateRedirectClicks(short);
       res.status(302).redirect(`${urlObject.originUrl}`);
     })
     .catch((e) => {
-      res.status(404).send(`${e}`);
+      res.status(500).send(`${e}`);
     });
 });
 
