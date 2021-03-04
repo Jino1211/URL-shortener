@@ -42,6 +42,7 @@ class DataBase {
     return compareUrlFromBase(short, "shrinkUrl");
   }
 
+  // update the clicks on the redirect
   updateRedirectClicks(short) {
     compareUrlFromBase(short, "shrinkUrl")
       .then((findUrl) => {
@@ -72,6 +73,7 @@ class URL {
   }
 }
 
+//receive url and type, and find the match url from the data base
 function compareUrlFromBase(url, kind) {
   return fsPromise
     .readFile("./database/database.json", "utf8")

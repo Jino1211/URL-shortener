@@ -67,11 +67,11 @@ router.get("/:short", checkFormat, (req, res) => {
         throw new Error("Short url is not found");
       }
       DB.updateRedirectClicks(short);
-      res.redirect(`${urlObject.originUrl}`);
+      res.status(302).redirect(`${urlObject.originUrl}`);
     })
     .catch((e) => {
       res.status(404).send(`${e}`);
     });
 });
 
-module.exports = router;
+module.exports = { router, DB };
