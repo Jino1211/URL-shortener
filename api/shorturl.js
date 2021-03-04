@@ -8,7 +8,7 @@ const validUrl = require("valid-url");
 router.use(express.json());
 router.use(express.urlencoded());
 
-//middleware check if req.url exist
+//middleware check if req.url exist in post request
 function checkExist(req, res, next) {
   const { url } = req.body;
   DB.urlExists(url)
@@ -26,6 +26,16 @@ function checkExist(req, res, next) {
     .catch((e) => {
       next();
     });
+}
+
+//middleware that check short format is valid - 9 characters
+function checkFormat(req, res, next) {
+  const { short } = req.params;
+  if (short.length !== 9) {
+    res.status(400).send(`${new Error("Not on format")}`);
+    return;
+  }
+  next();
 }
 
 const DB = new DataBase();
@@ -49,7 +59,7 @@ router.post("/", checkExist, (req, res) => {
     });
 });
 
-router.get("/:short", (req, res) => {
+router.get("/:short", checkFormat, (req, res) => {
   const { short } = req.params;
   DB.findOriginalUrl(short)
     .then((urlObject) => {
