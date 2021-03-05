@@ -1,5 +1,6 @@
 const request = require("supertest");
 const { DB } = require("./api/shorturl");
+const { getFromJsonBin } = require("./managedatabase");
 
 urlObjForTest = [
   {
@@ -13,7 +14,8 @@ urlObjForTest = [
 const fsPromise = require("fs/promises");
 
 const app = require("./app");
-beforeAll(async () => {
+
+afterAll(async () => {
   await fsPromise.writeFile(
     `./database/testDB.json`,
     JSON.stringify(urlObjForTest, null, 4),
@@ -21,10 +23,15 @@ beforeAll(async () => {
       console.log(e);
     }
   );
+  DB.keepMeSync();
 });
 
 describe("POST test", () => {
   const validUrl = { url: "https://github.com/Jino1211/URL-shortener" };
+  const anotherValid = {
+    url: "https://www.youtube.com/watch?v=g2nMKzhkvxw",
+    short: "jino",
+  };
   const existUrl = { url: "https://www.google.com/" };
   const inValidUrl = { url: "inValidUrl" };
   const invalidError = "Error: This is invalid URL";
@@ -50,6 +57,14 @@ describe("POST test", () => {
 
     expect(res.status).toBe(400);
     expect(`${res.body}`).toEqual(`${invalidError}`);
+  });
+
+  it("Should get url and costume short and receive the costume url short", async () => {
+    const res = await request(app).post(`/api/shorturl`).send(anotherValid);
+
+    expect(res.text).toBe(
+      "First time you send it. Original url: https://www.youtube.com/watch?v=g2nMKzhkvxw | Short url: jino"
+    );
   });
 });
 
@@ -97,5 +112,24 @@ describe("Statistics test", () => {
     expect(res.body.originUrl).toContain(thisUrl.originUrl);
     expect(res.body.createAt).toContain(thisUrl.createAt);
     expect(res.body.shrinkUrl).toContain(thisUrl.shrinkUrl);
+  });
+});
+
+describe("Test jsonBin requests", () => {
+  newUrl = "https://expressjs.com/en/guide/routing.html";
+
+  // it("Should update the json bin when added a new url to local DB", async () => {
+  //   DB.keepMeSync();
+  //   const res = await request(app).post("/api/shorturl").send(newUrl);
+
+  //   await getFromJsonBin().then((data) => {
+  //     expect(data.length).toBe(DB.length);
+  //   });
+  // });
+
+  it("Local DB should be concerted with json bin", async () => {
+    await getFromJsonBin().then((data) => {
+      expect(data).toEqual(DB.dataUrl);
+    });
   });
 });

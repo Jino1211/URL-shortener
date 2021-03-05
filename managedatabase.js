@@ -22,22 +22,25 @@ process.env.NODE_ENV === "test"
 class DataBase {
   constructor() {
     this.dataUrl = [];
+  }
 
-    //keep the data URL sync with the data base
+  //keep the data URL sync with the data base and json bin
+  keepMeSync() {
     readFromBase().then(async (data) => {
       if (data) {
         this.dataUrl = data;
       }
-      await getFromJsonBin()
-        .then((jsonBinData) => {
-          if (jsonBinData) {
-            this.dataUrl = jsonBinData;
-            console.log("Done to reload from json bin");
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-        });
+      // await getFromJsonBin()
+      //   .then((jsonBinData) => {
+      //     if (jsonBinData) {
+      //       this.dataUrl = jsonBinData;
+      //       console.log("Done to reload from json bin");
+      //       console.log();
+      //     }
+      //   })
+      //   .catch((e) => {
+      //     console.log(e);
+      //   });
     });
   }
 
@@ -47,8 +50,17 @@ class DataBase {
   }
 
   //add url
-  addURL(url) {
-    const newUrl = new URL(url);
+  async addURL(url, costume, short) {
+    console.log("hello 54 " + costume);
+    if (costume) {
+      await compareUrlFromBase(short, "shrinkUrl").then((res) => {
+        if (res) {
+          costume = false;
+          console.log("gat it " + costume);
+        }
+      });
+    }
+    const newUrl = new URL(url, costume, short);
     this.dataUrl.push(newUrl);
     putToJsonBin(this.dataUrl);
     const data = JSON.stringify(this.dataUrl, null, 4);
@@ -81,6 +93,7 @@ class DataBase {
         return this.dataUrl;
       })
       .then((data) => {
+        putToJsonBin(data);
         data = JSON.stringify(data, null, 4);
         fsPromise.writeFile(`./database/${testOrNor}.json`, data, (e) => {
           console.log(e);
@@ -90,9 +103,12 @@ class DataBase {
 }
 
 class URL {
-  constructor(URL) {
+  constructor(URL, costume, short) {
     this.originUrl = URL;
-    this.shrinkUrl = shortid.generate();
+    console.log("105" + costume);
+    costume === true
+      ? (this.shrinkUrl = short)
+      : (this.shrinkUrl = shortid.generate());
     this.createAt = new Date().toLocaleString();
     this.redirectCounter = 0;
   }
@@ -119,6 +135,7 @@ function compareUrlFromBase(url, kind) {
     });
 }
 
+//read data from local data base
 function readFromBase() {
   return fsPromise
     .readFile(`./database/${testOrNor}.json`, "utf8")
@@ -132,17 +149,19 @@ function readFromBase() {
     });
 }
 
+//update data to json bin for persistence
 function putToJsonBin(urlData) {
   axios
     .put(`${ROOT}/b/${binId}`, urlData, headers)
     .then((res) => {
-      console.log("all good" + res);
+      console.log("Success: " + res.status);
     })
     .catch((e) => {
       console.log(e);
     });
 }
 
+//get data from json bin
 function getFromJsonBin() {
   return axios
     .get(`${ROOT}/b/${binId}`, headers)
@@ -153,4 +172,16 @@ function getFromJsonBin() {
       console.log(e);
     });
 }
+
+// (function clearJsonBin() {
+//   putToJsonBin([
+//     {
+//       originUrl:
+//         "https://www.google.com/search?q=shorten+url+js&sxsrf=ALeKk01FTQ9vZ79AM08LYiA9hlxvRc-HVQ:1614693155750&source=lnms&tbm=vid&sa=X&ved=2ahUKEwjeteDf4JHvAhUCCxoKHckoDDA4ChD8BSgCegQIBRAE&biw=1920&bih=937",
+//       shrinkUrl: "OSCdOhTDZ",
+//       createAt: "05/03/2021, 9:20:57",
+//       redirectCounter: 0,
+//     },
+//   ]);
+// })();
 module.exports = { DataBase, URL, putToJsonBin, getFromJsonBin };

@@ -39,15 +39,22 @@ function checkFormat(req, res, next) {
 }
 
 const DB = new DataBase();
+DB.keepMeSync();
 
 router.post("/", checkExist, (req, res) => {
   const { url } = req.body;
+  const { short } = req.body;
+  let costume = false;
+
   if (!validUrl.isUri(url)) {
     res.status(400).json(`${new Error("This is invalid URL")}`);
     return;
   }
+  if (short) {
+    costume = true;
+  }
   console.log("newUrl");
-  DB.addURL(url)
+  DB.addURL(url, costume, short)
     .then((newUrl) => {
       res
         .status(201)
