@@ -1,9 +1,27 @@
 const request = require("supertest");
 const { DB } = require("./api/shorturl");
 
+urlObjForTest = [
+  {
+    originUrl: "https://www.google.com/",
+    shrinkUrl: "guJAIH63m",
+    createAt: "05/03/2021, 9:30:54",
+    redirectCounter: 0,
+  },
+];
+
 const fsPromise = require("fs/promises");
 
 const app = require("./app");
+beforeAll(async () => {
+  await fsPromise.writeFile(
+    `./database/testDB.json`,
+    JSON.stringify(urlObjForTest, null, 4),
+    (e) => {
+      console.log(e);
+    }
+  );
+});
 
 describe("POST test", () => {
   const validUrl = { url: "https://github.com/Jino1211/URL-shortener" };
@@ -11,12 +29,12 @@ describe("POST test", () => {
   const inValidUrl = { url: "inValidUrl" };
   const invalidError = "Error: This is invalid URL";
 
-  it("Should get valid URL and return url obj with all details", async () => {
+  it("Should get valid URL and added it to the DB", async () => {
     const length = DB.dataUrl.length;
     const res = await request(app).post("/api/shorturl").send(validUrl);
 
     expect(res.status).toBe(201);
-    expect(DB.dataUrl.length).not.toBe(length);
+    expect(DB.dataUrl.length).toBeGreaterThan(length);
   });
 
   it("Should get an exist URL and return url obj with all details", async () => {
@@ -37,7 +55,7 @@ describe("POST test", () => {
 
 describe("GET test", () => {
   it("Should get short url and redirect to original src", async () => {
-    const res = await request(app).get("/api/shorturl/6u2EqhsdU");
+    const res = await request(app).get("/api/shorturl/guJAIH63m");
 
     expect(res.status).toBe(302);
     expect(res.header.location).toBe("https://www.google.com/");
@@ -47,7 +65,7 @@ describe("GET test", () => {
     const res = await request(app).get("/api/shorturl/ySWqy3aysh");
 
     expect(res.status).toBe(404);
-    // expect(res.body.text).toEqual();
+    expect(res.body).toEqual({ ERROR: "Error: Short url is not found" });
   });
 
   it("Should get short url that is not in the format", async () => {
@@ -57,23 +75,27 @@ describe("GET test", () => {
     expect(res.body).toBe("Error: Not in format");
   });
 
-  //   it("Counter should increase by one for each click on short link", async () => {
-  //     const counterBefore = DB.dataUrl[index].redirectCounter;
-  //     const res = await request(app).get("/api/shortUrl/6u2EqhsdU");
-
-  //     const counterAfter = DB.dataUrl[index].redirectCounter;
-  //     expect(counterAfter).not.toBe(counterBefore);
-  //   });
+  it("Counter should increase by one for each click on short link", async () => {
+    const res = await request(app).get("/api/shorturl/guJAIH63m");
+    const thisUrl = DB.dataUrl.find((elem) => {
+      if (elem.shrinkUrl === "guJAIH63m") {
+        return true;
+      }
+    });
+    expect(thisUrl.redirectCounter).toBe(1);
+  });
 });
 
-// describe("Statistics test", () => {
-//   it("Should get sort url and received his obj", async () => {
-//     const res = await request(app).get("/api/statistics/6u2EqhsdU");
-//     const thisUrl = DB.dataUrl.find((elem) => {
-//       if (elem.shrinkUrl === "6u2EqhsdU") {
-//         return true;
-//       }
-//     });
-//     expect(res.body).not.toEqual(thisUrl.redirectCounter);
-//   });
-// });
+describe("Statistics test", () => {
+  it("Should get sort url and received his obj", async () => {
+    const res = await request(app).get("/api/statistics/guJAIH63m");
+    const thisUrl = DB.dataUrl.find((elem) => {
+      if (elem.shrinkUrl === "guJAIH63m") {
+        return true;
+      }
+    });
+    expect(res.body.originUrl).toContain(thisUrl.originUrl);
+    expect(res.body.createAt).toContain(thisUrl.createAt);
+    expect(res.body.shrinkUrl).toContain(thisUrl.shrinkUrl);
+  });
+});

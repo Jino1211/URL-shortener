@@ -1,12 +1,15 @@
+const { default: axios } = require("axios");
 const e = require("express");
 const fsPromise = require("fs/promises");
 const { url } = require("inspector");
 const shortid = require("shortid");
 let testOrNor;
+
 process.env.NODE_ENV === "test"
-  ? (testOrNor = "testdatabase")
+  ? (testOrNor = "testDB")
   : (testOrNor = "database");
 
+const axios = require("axios").default;
 class DataBase {
   constructor() {
     this.dataUrl = [];
@@ -107,5 +110,9 @@ function readFromBase() {
       console.error("Can't read the data base");
       return false;
     });
+}
+
+function postToJsonBin(array) {
+  axios.post();
 }
 module.exports = { DataBase, URL };
