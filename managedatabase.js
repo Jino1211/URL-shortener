@@ -1,24 +1,43 @@
 const { default: axios } = require("axios");
-const e = require("express");
 const fsPromise = require("fs/promises");
-const { url } = require("inspector");
 const shortid = require("shortid");
-let testOrNor;
 
+const ROOT = "https://api.jsonbin.io/v3";
+const APIKEY = "$2b$10$ZFiUgXxIT37j9HZKTvXJkOfMRxB0OzLbyOCbiPFSr4AOca6buiMYi";
+const binId = "6041f5f29342196a6a6dea23";
+const headers = {
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "X-Master-Key": APIKEY,
+    "X-Collection-Id": "6041e43d81087a6a8b96a1ab",
+    "Content-Type": "application/json",
+  },
+};
+
+let testOrNor;
 process.env.NODE_ENV === "test"
   ? (testOrNor = "testDB")
   : (testOrNor = "database");
 
-const axios = require("axios").default;
 class DataBase {
   constructor() {
     this.dataUrl = [];
 
     //keep the data URL sync with the data base
-    readFromBase().then((data) => {
+    readFromBase().then(async (data) => {
       if (data) {
         this.dataUrl = data;
       }
+      await getFromJsonBin()
+        .then((jsonBinData) => {
+          if (jsonBinData) {
+            this.dataUrl = jsonBinData;
+            console.log("Done to reload from json bin");
+          }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     });
   }
 
@@ -31,6 +50,7 @@ class DataBase {
   addURL(url) {
     const newUrl = new URL(url);
     this.dataUrl.push(newUrl);
+    putToJsonBin(this.dataUrl);
     const data = JSON.stringify(this.dataUrl, null, 4);
     return fsPromise
       .writeFile(`./database/${testOrNor}.json`, data, "utf-8")
@@ -112,7 +132,25 @@ function readFromBase() {
     });
 }
 
-function postToJsonBin(array) {
-  axios.post();
+function putToJsonBin(urlData) {
+  axios
+    .put(`${ROOT}/b/${binId}`, urlData, headers)
+    .then((res) => {
+      console.log("all good" + res);
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }
-module.exports = { DataBase, URL };
+
+function getFromJsonBin() {
+  return axios
+    .get(`${ROOT}/b/${binId}`, headers)
+    .then((bins) => {
+      return bins.data.record;
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+}
+module.exports = { DataBase, URL, putToJsonBin, getFromJsonBin };
