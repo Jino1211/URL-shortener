@@ -27,20 +27,17 @@ class DataBase {
   //keep the data URL sync with the data base and json bin
   keepMeSync() {
     readFromBase().then(async (data) => {
-      if (data) {
-        this.dataUrl = data;
-      }
-      // await getFromJsonBin()
-      //   .then((jsonBinData) => {
-      //     if (jsonBinData) {
-      //       this.dataUrl = jsonBinData;
-      //       console.log("Done to reload from json bin");
-      //       console.log();
-      //     }
-      //   })
-      //   .catch((e) => {
-      //     console.log(e);
-      //   });
+      this.dataUrl = data;
+      await getFromJsonBin()
+        .then((jsonBinData) => {
+          if (jsonBinData) {
+            this.dataUrl = jsonBinData;
+            console.log("Done to reload from json bin");
+          }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     });
   }
 
@@ -51,12 +48,10 @@ class DataBase {
 
   //add url
   async addURL(url, costume, short) {
-    console.log("hello 54 " + costume);
     if (costume) {
       await compareUrlFromBase(short, "shrinkUrl").then((res) => {
         if (res) {
           costume = false;
-          console.log("gat it " + costume);
         }
       });
     }
@@ -105,7 +100,6 @@ class DataBase {
 class URL {
   constructor(URL, costume, short) {
     this.originUrl = URL;
-    console.log("105" + costume);
     costume === true
       ? (this.shrinkUrl = short)
       : (this.shrinkUrl = shortid.generate());
@@ -173,13 +167,14 @@ function getFromJsonBin() {
     });
 }
 
+//option to clear the jsonBin, remove the comment to make it play
+
 // (function clearJsonBin() {
 //   putToJsonBin([
 //     {
-//       originUrl:
-//         "https://www.google.com/search?q=shorten+url+js&sxsrf=ALeKk01FTQ9vZ79AM08LYiA9hlxvRc-HVQ:1614693155750&source=lnms&tbm=vid&sa=X&ved=2ahUKEwjeteDf4JHvAhUCCxoKHckoDDA4ChD8BSgCegQIBRAE&biw=1920&bih=937",
-//       shrinkUrl: "OSCdOhTDZ",
-//       createAt: "05/03/2021, 9:20:57",
+//       originUrl: "https://www.google.com/",
+//       shrinkUrl: "guJAIH63m",
+//       createAt: "05/03/2021, 9:30:54",
 //       redirectCounter: 0,
 //     },
 //   ]);

@@ -3,6 +3,24 @@
         "originUrl": "https://www.google.com/",
         "shrinkUrl": "guJAIH63m",
         "createAt": "05/03/2021, 9:30:54",
+        "redirectCounter": 2
+    },
+    {
+        "originUrl": "https://github.com/Jino1211/URL-shortener",
+        "shrinkUrl": "PCu8oV4_v",
+        "createAt": "06/03/2021, 20:35:00",
+        "redirectCounter": 0
+    },
+    {
+        "originUrl": "https://www.youtube.com/watch?v=g2nMKzhkvxw",
+        "shrinkUrl": "jino",
+        "createAt": "06/03/2021, 20:35:00",
+        "redirectCounter": 0
+    },
+    {
+        "originUrl": "https://jsonbin.io/collections/6041e43d81087a6a8b96a1ab",
+        "shrinkUrl": "6y2_EN8Gg-",
+        "createAt": "06/03/2021, 20:35:00",
         "redirectCounter": 0
     }
 ]

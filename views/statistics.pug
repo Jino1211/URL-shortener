@@ -1,0 +1,23 @@
+doctype html
+html(lang="en")
+    head
+        link(rel="stylesheet", href="../../public/style.css")
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title statistics 
+    body
+        h1 STATISTICS 
+        table 
+            tr  
+                th Original Url 
+                th Short Url 
+                th Date
+                th Redirect count 
+            each url in urls 
+                tr 
+                    td= url.originUrl 
+                    td= url.shrinkUrl 
+                    td= url.createAt 
+                    td= url.redirectCounter 
+                

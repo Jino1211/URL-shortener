@@ -1,7 +1,8 @@
 const request = require("supertest");
 const { DB } = require("./api/shorturl");
 const { getFromJsonBin } = require("./managedatabase");
-
+const resStatistics =
+  '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>statistics </title></head><body><h1>STATISTICS </h1><table> <tr> <th>Original Url </th><th>Short Url </th><th>Date</th><th>Redirect count </th></tr><tr> <td>https://www.google.com/</td><td>guJAIH63m</td><td>05/03/2021, 9:30:54</td><td>1</td></tr></table></body></html>';
 urlObjForTest = [
   {
     originUrl: "https://www.google.com/",
@@ -15,7 +16,7 @@ const fsPromise = require("fs/promises");
 
 const app = require("./app");
 
-afterAll(async () => {
+beforeAll(async () => {
   await fsPromise.writeFile(
     `./database/testDB.json`,
     JSON.stringify(urlObjForTest, null, 4),
@@ -28,7 +29,7 @@ afterAll(async () => {
 
 describe("POST test", () => {
   const validUrl = { url: "https://github.com/Jino1211/URL-shortener" };
-  const anotherValid = {
+  const validWithShort = {
     url: "https://www.youtube.com/watch?v=g2nMKzhkvxw",
     short: "jino",
   };
@@ -60,10 +61,21 @@ describe("POST test", () => {
   });
 
   it("Should get url and costume short and receive the costume url short", async () => {
-    const res = await request(app).post(`/api/shorturl`).send(anotherValid);
+    const res = await request(app).post("/api/shorturl").send(validWithShort);
 
     expect(res.text).toBe(
       "First time you send it. Original url: https://www.youtube.com/watch?v=g2nMKzhkvxw | Short url: jino"
+    );
+  });
+
+  it("Should get new url and costume short that already exist and return different short", async () => {
+    const res = await request(app).post("/api/shorturl").send({
+      url: "https://jsonbin.io/collections/6041e43d81087a6a8b96a1ab",
+      short: "jino",
+    });
+
+    expect(res.text).not.toBe(
+      "First time you send it. Original url: https://jsonbin.io/collections/6041e43d81087a6a8b96a1ab | Short url: jino"
     );
   });
 });
@@ -104,32 +116,7 @@ describe("GET test", () => {
 describe("Statistics test", () => {
   it("Should get sort url and received his obj", async () => {
     const res = await request(app).get("/api/statistics/guJAIH63m");
-    const thisUrl = DB.dataUrl.find((elem) => {
-      if (elem.shrinkUrl === "guJAIH63m") {
-        return true;
-      }
-    });
-    expect(res.body.originUrl).toContain(thisUrl.originUrl);
-    expect(res.body.createAt).toContain(thisUrl.createAt);
-    expect(res.body.shrinkUrl).toContain(thisUrl.shrinkUrl);
-  });
-});
 
-describe("Test jsonBin requests", () => {
-  newUrl = "https://expressjs.com/en/guide/routing.html";
-
-  // it("Should update the json bin when added a new url to local DB", async () => {
-  //   DB.keepMeSync();
-  //   const res = await request(app).post("/api/shorturl").send(newUrl);
-
-  //   await getFromJsonBin().then((data) => {
-  //     expect(data.length).toBe(DB.length);
-  //   });
-  // });
-
-  it("Local DB should be concerted with json bin", async () => {
-    await getFromJsonBin().then((data) => {
-      expect(data).toEqual(DB.dataUrl);
-    });
+    expect(res.text).toBe(resStatistics);
   });
 });

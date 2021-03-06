@@ -6,6 +6,7 @@ const api = Router();
 
 api.use("/shorturl", router);
 api.use("/statistics", routerS);
+
 api.use("*", (req, res) => {
   res.status(404).send({ msg: "Page Not Found" });
 });
