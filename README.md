@@ -1,6 +1,6 @@
 # ![Scale-Up Velocity](./readme-files/logo-main.png) Final 1 - URL shortner 📎
 
-## URL shorter YEHONATAN ROZMARIN
+## URL shorter by YEHONATAN ROZMARIN
 
 this is my shortner url project.
 I added some bonus like those:
