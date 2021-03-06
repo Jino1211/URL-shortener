@@ -38,10 +38,25 @@ function checkFormat(req, res, next) {
   next();
 }
 
+function checkShortExist(req, res, next) {
+  const { short } = req.body;
+  DB.findOriginalUrl(short).then((data) => {
+    if (!data) {
+      next();
+      return;
+    }
+    res
+      .status(409)
+      .json({
+        ERROR: "This short is already exist please choose different name",
+      });
+  });
+}
+
 const DB = new DataBase();
 DB.keepMeSync();
 
-router.post("/", checkExist, (req, res) => {
+router.post("/", checkExist, checkShortExist, (req, res) => {
   const { url } = req.body;
   const { short } = req.body;
   let costume = false;

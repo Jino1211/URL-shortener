@@ -48,13 +48,6 @@ class DataBase {
 
   //add url
   async addURL(url, costume, short) {
-    if (costume) {
-      await compareUrlFromBase(short, "shrinkUrl").then((res) => {
-        if (res) {
-          costume = false;
-        }
-      });
-    }
     const newUrl = new URL(url, costume, short);
     this.dataUrl.push(newUrl);
     putToJsonBin(this.dataUrl);

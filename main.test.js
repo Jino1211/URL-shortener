@@ -2,7 +2,7 @@ const request = require("supertest");
 const { DB } = require("./api/shorturl");
 const { getFromJsonBin } = require("./managedatabase");
 const resStatistics =
-  '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>statistics </title></head><body><h1>STATISTICS </h1><table> <tr> <th>Original Url </th><th>Short Url </th><th>Date</th><th>Redirect count </th></tr><tr> <td>https://www.google.com/</td><td>guJAIH63m</td><td>05/03/2021, 9:30:54</td><td>1</td></tr></table></body></html>';
+  '<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="../../public/style.css"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>statistics </title></head><body><h1>STATISTICS </h1><table> <tr> <th>Original Url </th><th>Short Url </th><th>Date</th><th>Redirect count </th></tr><tr> <td>https://www.google.com/</td><td>guJAIH63m</td><td>05/03/2021, 9:30:54</td><td>1</td></tr></table></body></html>';
 urlObjForTest = [
   {
     originUrl: "https://www.google.com/",
@@ -68,7 +68,7 @@ describe("POST test", () => {
     );
   });
 
-  it("Should get new url and costume short that already exist and return different short", async () => {
+  it("Should get new url and new costume short that already exist and return different short", async () => {
     const res = await request(app).post("/api/shorturl").send({
       url: "https://jsonbin.io/collections/6041e43d81087a6a8b96a1ab",
       short: "jino",
@@ -76,6 +76,17 @@ describe("POST test", () => {
 
     expect(res.text).not.toBe(
       "First time you send it. Original url: https://jsonbin.io/collections/6041e43d81087a6a8b96a1ab | Short url: jino"
+    );
+  });
+
+  it("Should get new url and costume that already exist and return error", async () => {
+    const res = await request(app).post("/api/shorturl").send({
+      url: "https://www.youtube.com/watch?v=g2nadMKzhkvxw",
+      short: "jino",
+    });
+
+    expect(res.text).toBe(
+      '{"ERROR":"This short is already exist please choose different name"}'
     );
   });
 });
