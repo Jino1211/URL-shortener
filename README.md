@@ -8,7 +8,9 @@ I added some bonus like those:
 ## bonus
 
 - - Custom short URL. Support optional `shorturl-id` parameter in your `POST` request.
+- add test for legal short that not exist
+- add test for short that already in DB and expect to received an error
 - Serve a styled statistics dashboard instead of the default JSON statistics.
-- Use the [`JSONBIN.io`](https://jsonbin.io/) service bin as your persistent layer in your back-end DB class (use CRUD operations to read write bins)
+- Use the [`JSONBIN.io`](https://jsonbin.io/) service bin as your persistent layer in your back-end DB class.
 
 GOOD LUCK!
