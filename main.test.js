@@ -27,6 +27,16 @@ beforeAll(async () => {
   DB.keepMeSync();
 });
 
+afterAll(async () => {
+  await fsPromise.writeFile(
+    `./database/testDB.json`,
+    JSON.stringify(urlObjForTest, null, 4),
+    (e) => {
+      console.log(e);
+    }
+  );
+});
+
 describe("POST test", () => {
   const validUrl = { url: "https://github.com/Jino1211/URL-shortener" };
   const validWithShort = {
