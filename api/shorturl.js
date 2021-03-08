@@ -9,29 +9,26 @@ router.use(express.json());
 router.use(express.urlencoded());
 
 //middleware check if req.url exist in post request
-function checkExist(req, res, next) {
+async function checkExist(req, res, next) {
   const { url } = req.body;
-  DB.urlExists(url)
-    .then((urlObject) => {
-      if (urlObject) {
-        res
-          .status(200)
-          .send(
-            `Already exist. Original url: ${urlObject.originUrl} | Short url: ${urlObject.shrinkUrl}`
-          );
-        return;
-      }
-      throw new Error(e);
-    })
-    .catch((e) => {
-      next();
-    });
+  try {
+    const urlObject = await DB.findUrlFromBase(url, "originUrl");
+    console.log(urlObject);
+    res
+      .status(200)
+      .send(
+        `Already exist. Original url: ${urlObject.originUrl} | Short url: ${urlObject.shrinkUrl}`
+      );
+  } catch (e) {
+    console.log("here");
+    next();
+  }
 }
 
 //middleware that check short format is valid - 9 characters
 function checkFormat(req, res, next) {
-  const { short } = req.params;
-  if (short.length >= 11) {
+  const { shortUrl } = req.params;
+  if (shortUrl.length >= 11) {
     res.status(400).json(`${new Error("Not in format")}`);
     return;
   }
@@ -40,22 +37,19 @@ function checkFormat(req, res, next) {
 
 function checkShortExist(req, res, next) {
   const { short } = req.body;
-  DB.findOriginalUrl(short).then((data) => {
-    if (!data) {
-      next();
-      return;
-    }
-    res
-      .status(409)
-      .json({
+  DB.findUrlFromBase(short, "shrinkUrl")
+    .then((data) => {
+      res.status(409).json({
         ERROR: "This short is already exist please choose different name",
       });
-  });
+    })
+    .catch((e) => next());
 }
 
 const DB = new DataBase();
-DB.keepMeSync();
+DB.syncDB();
 
+// Create new shortUrl route
 router.post("/", checkExist, checkShortExist, (req, res) => {
   const { url } = req.body;
   const { short } = req.body;
@@ -83,22 +77,16 @@ router.post("/", checkExist, checkShortExist, (req, res) => {
     });
 });
 
-router.get("/:short", checkFormat, (req, res) => {
-  const { short } = req.params;
-  DB.findOriginalUrl(short)
-    .then((urlObject) => {
-      if (!urlObject) {
-        res
-          .status(404)
-          .json({ ERROR: `${new Error("Short url is not found")}` });
-        return;
-      }
-      DB.updateRedirectClicks(short);
-      res.status(302).redirect(`${urlObject.originUrl}`);
-    })
-    .catch((e) => {
-      res.status(500).send(`${e}`);
-    });
+router.get("/:shortUrl", checkFormat, async (req, res) => {
+  const { shortUrl } = req.params;
+  try {
+    const urlObject = await DB.findUrlFromBase(shortUrl, "shrinkUrl");
+    console.log("here" + urlObject);
+    DB.updateRedirectClicks(shortUrl);
+    res.status(302).redirect(`${urlObject.originUrl}`);
+  } catch (e) {
+    res.status(404).json({ ERROR: "short Url is not found" });
+  }
 });
 
 module.exports = { router, DB };

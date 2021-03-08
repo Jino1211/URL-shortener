@@ -6,7 +6,7 @@ const { DB } = require("./shorturl");
 routerS.get("/:short", (req, res) => {
   const { short } = req.params;
   console.log(short);
-  DB.findOriginalUrl(short)
+  DB.findUrlFromBase(short, "shrinkUrl")
     .then((findUrl) => {
       if (!findUrl) {
         throw new Error("This short URL do not exist");

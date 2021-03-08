@@ -24,7 +24,7 @@ beforeAll(async () => {
       console.log(e);
     }
   );
-  DB.keepMeSync();
+  DB.syncDB();
 });
 
 afterAll(async () => {
@@ -113,7 +113,7 @@ describe("GET test", () => {
     const res = await request(app).get("/api/shorturl/ySWqy3aysh");
 
     expect(res.status).toBe(404);
-    expect(res.body).toEqual({ ERROR: "Error: Short url is not found" });
+    expect(res.body).toEqual({ ERROR: "short Url is not found" });
   });
 
   it("Should get short url that is not in the format", async () => {

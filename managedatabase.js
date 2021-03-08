@@ -20,34 +20,32 @@ process.env.NODE_ENV === "test"
   : (testOrNor = "database");
 
 class DataBase {
-  constructor() {
-    this.dataUrl = [];
-  }
+  jsonFileLocation;
+  dataUrl = [];
 
-  //keep the data URL sync with the data base and json bin
-  keepMeSync() {
-    readFromBase().then(async (data) => {
-      this.dataUrl = data;
-      await getFromJsonBin()
-        .then((jsonBinData) => {
-          if (jsonBinData) {
-            this.dataUrl = jsonBinData;
-            console.log("Done to reload from json bin");
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-    });
+  constructor() {}
+
+  // sync in-memory data with local database (json file) and remote database (json bin service)
+  async syncDB() {
+    try {
+      this.dataUrl = await readFromBase();
+    } catch {
+      try {
+        const jsonBinData = await getFromJsonBin();
+        if (jsonBinData) {
+          this.dataUrl = jsonBinData;
+          console.log("Done to reload from json bin");
+        }
+      } catch (e) {
+        throw new Error("cant read from db");
+      }
+    }
   }
 
   //check if the current URL is already exist in database, and return the original+shrink if yes.
-  urlExists(url) {
-    return compareUrlFromBase(url, "originUrl");
-  }
 
   //add url
-  async addURL(url, costume, short) {
+  addURL(url, costume, short) {
     const newUrl = new URL(url, costume, short);
     this.dataUrl.push(newUrl);
     putToJsonBin(this.dataUrl);
@@ -59,18 +57,27 @@ class DataBase {
       })
       .catch((err) => {
         console.log(err);
-        return "Was an error" + err;
+        throw new Error("Was an error" + err);
       });
   }
 
   // Check the current short URL and send it the source match
-  findOriginalUrl(short) {
-    return compareUrlFromBase(short, "shrinkUrl");
+  findUrlFromBase(url, kind) {
+    return fsPromise
+      .readFile(`./database/${testOrNor}.json`, "utf8")
+      .then((data) => {
+        const parseData = JSON.parse(data);
+        const findUrl = parseData.find((urlElem) => urlElem[kind] === url);
+        if (findUrl) {
+          return findUrl;
+        }
+        throw new Error("Not found");
+      });
   }
 
   // update the clicks on the redirect
   updateRedirectClicks(short) {
-    compareUrlFromBase(short, "shrinkUrl")
+    this.findUrlFromBase(short, "shrinkUrl")
       .then((findUrl) => {
         const index = this.dataUrl.findIndex((matchUrlInDB) => {
           if (matchUrlInDB.shrinkUrl === findUrl.shrinkUrl) {
@@ -102,25 +109,6 @@ class URL {
 }
 
 //receive url and type, and find the match url from the data base
-function compareUrlFromBase(url, kind) {
-  return fsPromise
-    .readFile(`./database/${testOrNor}.json`, "utf8")
-    .then((data) => {
-      const parseData = JSON.parse(data);
-      const findUrl = parseData.find((urlElem) => {
-        if (urlElem[kind] === url) {
-          return true;
-        }
-      });
-      if (findUrl) {
-        return findUrl;
-      }
-      throw new Error("hye hahah");
-    })
-    .catch((e) => {
-      return false;
-    });
-}
 
 //read data from local data base
 function readFromBase() {
